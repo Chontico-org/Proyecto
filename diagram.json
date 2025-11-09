@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "author": "GILMAN CARDONA",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": -184.06,
+      "left": -293.9,
+      "rotate": 90,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-analog-joystick",
+      "id": "joystick1",
+      "top": -327,
+      "left": -119.4,
+      "attrs": {}
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled2",
+      "top": -265.66,
+      "left": -316.57,
+      "attrs": { "i2cAddress": "0x3c" }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo1",
+      "top": 44.2,
+      "left": 39.4,
+      "rotate": 90,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo2",
+      "top": 44.2,
+      "left": -104.6,
+      "rotate": 90,
+      "attrs": {}
+    },
+    { "type": "wokwi-servo", "id": "servo3", "top": 26.8, "left": -345.6, "attrs": {} }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "joystick1:VERT", "esp:34", "blue", [ "v19.2", "h-124.8" ] ],
+    [ "joystick1:HORZ", "esp:35", "blue", [ "v38.4", "h-144" ] ],
+    [ "esp:GND.2", "joystick1:GND", "black", [ "v0", "h57.6" ] ],
+    [ "joystick1:VCC", "esp:3V3", "red", [ "v48", "h-76.8" ] ],
+    [ "joystick1:SEL", "esp:32", "blue", [ "v57.6", "h-163.2" ] ],
+    [
+      "oled2:GND",
+      "esp:GND.2",
+      "black",
+      [ "v-28.8", "h-86.4", "v0", "h-48", "v297.6", "h249.6" ]
+    ],
+    [ "oled2:VCC", "esp:5V", "red", [ "v-19.2", "h-134.25", "v278.4" ] ],
+    [ "esp:22", "oled2:SCL", "cyan", [ "v19.2", "h-249.6", "v-288", "h172.5" ] ],
+    [ "esp:21", "oled2:SDA", "cyan", [ "v28.8", "h-182.4", "v-307.2", "h144" ] ],
+    [ "servo3:PWM", "esp:25", "orange", [ "h-96", "v-268.6", "h220.8" ] ],
+    [ "servo3:GND", "esp:GND.2", "black", [ "h-28.8", "v-57.6", "h211.2" ] ],
+    [ "servo2:GND", "esp:GND.2", "black", [ "v0" ] ],
+    [ "servo1:GND", "esp:GND.2", "black", [ "v0" ] ],
+    [ "servo2:PWM", "esp:26", "orange", [ "v-172.8", "h-221" ] ],
+    [ "servo1:PWM", "esp:27", "orange", [ "v-182.4", "h-374.6" ] ],
+    [ "esp:5V", "servo3:V+", "red", [ "v9.75", "h-57.6", "v201.6" ] ],
+    [ "esp:5V", "servo2:V+", "red", [ "v-19.05", "h-38.4" ] ],
+    [ "esp:5V", "servo1:V+", "red", [ "v-9.45", "h422.4" ] ]
+  ],
+  "dependencies": { "Adafruit_SSD1306": "2.5.7", "Adafruit_GFX": "1.11.3" }
+}
