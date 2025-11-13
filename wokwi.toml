@@ -1,4 +1,13 @@
 [wokwi]
 version = 1
-firmware = "build/esp32dev/firmware.bin"
-elf = "build/esp32dev/firmware.elf"
+firmware = '.pio/build/esp32dev/firmware.bin'
+elf = '.pio/build/esp32dev/firmware.elf'
+
+# Configuración de puerto serial (RFC2217)
+# Descomenta la siguiente línea para habilitar acceso serial remoto
+# rfc2217ServerPort = 4000
+
+# Configuración de reenvío de puertos (para proyectos WiFi ESP32)
+# [[net.forward]]
+# from = "localhost:8080"
+# to = "target:80"
