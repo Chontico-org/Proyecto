@@ -1,0 +1,166 @@
+# RESUMEN DE CONFIGURACIÓN - Proyecto Wokwi
+
+## 🎯 PROBLEMA IDENTIFICADO Y RESUELTO
+
+Tu proyecto no compilaba correctamente para Wokwi porque faltaban las configuraciones específicas en los archivos de PlatformIO.
+
+---
+
+## ✅ CAMBIOS REALIZADOS
+
+### 1. **platformio.ini** - Actualizado
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+monitor_speed = 115200
+
+build_flags =
+    -DCORE_DEBUG_LEVEL=0
+
+lib_deps =
+    adafruit/Adafruit GFX Library @ ^1.11.9
+    adafruit/Adafruit SSD1306 @ ^2.5.9
+    adafruit/Adafruit BusIO @ ^1.14.5
+    madhephaestus/ESP32Servo @ ^1.1.1
+
+monitor_rts = 0
+monitor_dtr = 0
+```
+
+**Cambios importantes:**
+- ✓ Agregadas banderas de build optimizadas
+- ✓ Deshabilitadas líneas RTS/DTR (necesario para Wokwi)
+- ✓ Configuración serial mejorada
+
+### 2. **wokwi.toml** - Actualizado
+```toml
+[wokwi]
+version = 1
+firmware = '.pio/build/esp32dev/firmware.bin'
+elf = '.pio/build/esp32dev/firmware.elf'
+
+rfc2217ServerPort = 4000
+```
+
+**Cambios importantes:**
+- ✓ Habilitado puerto serial remoto RFC2217
+- ✓ Referencias correctas a los archivos de firmware
+
+### 3. **diagram.json** - ✓ Ya estaba correcto
+- Todos los componentes conectados correctamente
+- Pines asignados según tu código
+- Dependencias incluidas
+
+---
+
+## 🚀 CÓMO USAR AHORA
+
+### Opción A: Usando PowerShell (Recomendado en Windows)
+```powershell
+# Navega a la carpeta del proyecto
+cd "C:\Users\gilma\OneDrive\Documentos\GitHub\Proyecto"
+
+# Ejecutar script con limpieza
+.\build_wokwi.ps1 -Clean
+
+# O solo compilar
+.\build_wokwi.ps1
+
+# Para subir a placa física
+.\build_wokwi.ps1 -Upload
+```
+
+### Opción B: Usando el script batch
+```bash
+build_wokwi.bat
+```
+
+### Opción C: Comandos manuales
+```bash
+# Compilar
+pio run -e esp32dev
+
+# Compilar y limpiar
+pio run --target clean -e esp32dev
+pio run -e esp32dev
+
+# Ver monitor serial
+pio device monitor -b 115200
+```
+
+---
+
+## 📋 ARCHIVOS CREADOS
+
+1. **SETUP_WOKWI.md** - Documentación completa
+2. **build_wokwi.ps1** - Script PowerShell para compilar
+3. **build_wokwi.bat** - Script batch para compilar
+4. **QUICK_START.txt** - Este archivo
+
+---
+
+## 🔧 VERIFICACIÓN
+
+Tu proyecto tiene:
+- ✓ **Pantalla OLED SSD1306** en I2C (SDA=21, SCL=22, Dirección=0x3C)
+- ✓ **Joystick analógico** (X=35, Y=34, SW=32, GND, VCC)
+- ✓ **3 Servos** (X=27, Y=26, Z=25)
+- ✓ **ESP32 Dev Module** como placa principal
+- ✓ **Monitor serial** en 115200 baud
+
+---
+
+## ❓ TROUBLESHOOTING
+
+### Si aún tienes problemas:
+
+1. **Limpia completamente el proyecto:**
+   ```bash
+   pio run --target clean -e esp32dev
+   del /s /q .pio
+   pio run -e esp32dev
+   ```
+
+2. **Reinstala las dependencias:**
+   ```bash
+   pio lib update
+   pio run -e esp32dev
+   ```
+
+3. **Verifica que los pines sean correctos en main.cpp:**
+   - SDA debe ser 21
+   - SCL debe ser 22
+   - Los servos en 25, 26, 27
+   - El joystick en 32, 34, 35
+
+4. **Abre Wokwi:**
+   - Ve a https://wokwi.com
+   - Crea nuevo proyecto o carga diagram.json
+   - En la carpeta .pio/build/esp32dev/ encontrarás firmware.elf y firmware.bin
+
+---
+
+## 📱 PASOS PARA EJECUTAR EN WOKWI
+
+1. Compila el proyecto con uno de los scripts
+2. Ve a https://wokwi.com
+3. Opción A: Carga diagram.json directamente
+4. Opción B: Crea nuevo proyecto y copia el diagram.json
+5. Sube el archivo firmware.elf a Wokwi
+6. ¡Presiona Start Simulation!
+
+---
+
+## 💡 NOTAS IMPORTANTES
+
+- El archivo `diagram.json` ya tiene todos tus componentes configurados
+- Las rutas de firmware en `wokwi.toml` deben ser relativas a la carpeta del proyecto
+- La configuración RFC2217 permite monitor serial remoto desde Wokwi
+- Los flags de build optimizan la compilación para el ESP32
+
+---
+
+**¡Tu proyecto está listo! 🎉**
+Ahora deberías poder compilar sin problemas y ejecutar en Wokwi.
