@@ -1,36 +1,62 @@
-#include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <ESP32Servo.h>
 #include <Wire.h>
 
-// Configuración de pines
+// ============================================
+// CONFIGURACIÓN DE PINES
+// ============================================
 #define PIN_SDA 21
 #define PIN_SCL 22
-#define SERVO_X 27
-#define SERVO_Y 26
-#define SERVO_Z 25
-#define JOY_X 34
-#define JOY_Y 35
-#define JOY_SW 32
 
-// Configuración pantalla
+// Pines de Servos
+#define SERVO_X 27    // Servo para movimiento izquierda/derecha
+#define SERVO_Y 26    // Servo para movimiento arriba/abajo
+#define SERVO_Z 25    // Servo para movimiento adicional (botón)
+
+// Pines del Joystick
+#define JOY_X 34      // Eje X del joystick (izquierda/derecha)
+#define JOY_Y 35      // Eje Y del joystick (arriba/abajo)
+#define JOY_SW 32     // Botón del joystick
+
+// ============================================
+// CONFIGURACIÓN PANTALLA OLED
+// ============================================
 #define ANCHO 128
 #define ALTO 64
 #define OLED_RESET -1
 Adafruit_SSD1306 display(ANCHO, ALTO, &Wire, OLED_RESET);
 
-// Configuración servos
+// ============================================
+// OBJETOS DE SERVOS
+// ============================================
 Servo servoX;
 Servo servoY;
 Servo servoZ;
 
-// Variables globales
-int valX = 90;
-int valY = 90;
-int valZ = 90;
-String movimiento = "";
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+int anguloX = 90;
+int anguloY = 90;
+int anguloZ = 90;
+String movimiento = "Neutral";
 
+// Umbrales para detectar movimiento del joystick
+#define UMBRAL_MINIMO 1500
+#define UMBRAL_MAXIMO 2500
+
+// ============================================
+// PROTOTIPOS DE FUNCIONES
+// ============================================
+void determinaMovimiento(int xValue, int yValue, int swValue);
+void controlarServos(int xValue, int yValue, int swValue);
+void mostrarPantalla();
+void dibujarBarraAngulo(int angulo, int posY);
+
+// ============================================
+// SETUP - Se ejecuta una sola vez
+// ============================================
 void setup() {
   Serial.begin(115200);
   
@@ -39,55 +65,163 @@ void setup() {
   servoY.attach(SERVO_Y);
   servoZ.attach(SERVO_Z);
   
-  // Inicializar pantalla
+  // Posiciones iniciales
+  servoX.write(90);
+  servoY.write(90);
+  servoZ.write(90);
+  
+  // Inicializar pantalla OLED
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println("Error en pantalla OLED");
     while(1);
   }
   
+  // Mostrar pantalla de bienvenida
   display.clearDisplay();
-  display.setTextSize(1);
+  display.setTextSize(2);
   display.setTextColor(SSD1306_WHITE);
-  display.setCursor(0,0);
-  display.println("Brazo robot listo!");
+  display.setCursor(10, 20);
+  display.println("Brazo Robot");
+  display.setCursor(15, 45);
+  display.setTextSize(1);
+  display.println("Listo!");
   display.display();
   
+  // Configurar botón del joystick
   pinMode(JOY_SW, INPUT_PULLUP);
-  delay(1500);
+  delay(2000);
 }
 
+// ============================================
+// LOOP - Se ejecuta continuamente
+// ============================================
 void loop() {
+  // Leer valores del joystick
   int xValue = analogRead(JOY_X);
   int yValue = analogRead(JOY_Y);
   int swValue = digitalRead(JOY_SW);
   
-  // Mapear valores
-  valX = map(xValue, 0, 4095, 0, 180);
-  valY = map(yValue, 0, 4095, 0, 180);
+  // Determinar dirección del movimiento
+  determinaMovimiento(xValue, yValue, swValue);
   
-  // Mover servos
-  servoX.write(valX);
-  servoY.write(valY);
+  // Controlar servos basado en el movimiento
+  controlarServos(xValue, yValue, swValue);
   
-  // Control servo Z
-  if(swValue == LOW) {
-    servoZ.write(45);
-    movimiento = "Dibujando!";
-  } else {
-    servoZ.write(90);
-  }
-  
-  // Mostrar en pantalla
-  display.clearDisplay();
-  display.setCursor(0,10);
-  display.print("Mov: ");
-  display.println(movimiento);
-  display.setCursor(0,30);
-  display.print("X: ");
-  display.print(valX);
-  display.print(" Y: ");
-  display.println(valY);
-  display.display();
+  // Mostrar información en pantalla
+  mostrarPantalla();
   
   delay(100);
+}
+
+// ============================================
+// FUNCIÓN: Determinar movimiento del joystick
+// ============================================
+void determinaMovimiento(int xValue, int yValue, int swValue) {
+  // EDITA AQUÍ: Modifica la lógica de detección de movimiento
+  
+  if (swValue == LOW) {
+    movimiento = "AGARRANDO";
+  }
+  else if (yValue > UMBRAL_MAXIMO) {
+    movimiento = "ARRIBA";
+  }
+  else if (yValue < UMBRAL_MINIMO) {
+    movimiento = "ABAJO";
+  }
+  else if (xValue > UMBRAL_MAXIMO) {
+    movimiento = "DERECHA";
+  }
+  else if (xValue < UMBRAL_MINIMO) {
+    movimiento = "IZQUIERDA";
+  }
+  else {
+    movimiento = "NEUTRAL";
+  }
+}
+
+// ============================================
+// FUNCIÓN: Controlar servos
+// ============================================
+void controlarServos(int xValue, int yValue, int swValue) {
+  // EDITA AQUÍ: Modifica cómo se controlan los servos
+  
+  // Mapear valores del joystick (0-4095) a ángulos del servo (0-180)
+  anguloX = map(xValue, 0, 4095, 0, 180);
+  anguloY = map(yValue, 0, 4095, 0, 180);
+  
+  // Servo X: controla izquierda/derecha
+  servoX.write(anguloX);
+  
+  // Servo Y: controla arriba/abajo (invertir si es necesario)
+  servoY.write(180 - anguloY);
+  
+  // Servo Z: se controla con el botón del joystick
+  if (swValue == LOW) {
+    anguloZ = 45;   // Cerrar (agarrar)
+    servoZ.write(45);
+  } else {
+    anguloZ = 135;  // Abrir (soltar)
+    servoZ.write(135);
+  }
+}
+
+// ============================================
+// FUNCIÓN: Mostrar información en pantalla
+// ============================================
+void mostrarPantalla() {
+  // EDITA AQUÍ: Modifica qué se muestra en la pantalla OLED
+  
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  
+  // Título
+  display.setCursor(25, 0);
+  display.println("BRAZO ROBOT 2.0");
+  
+  // Línea divisoria
+  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
+  
+  // Movimiento actual
+  display.setCursor(0, 13);
+  display.print("Dir: ");
+  display.println(movimiento);
+  
+  // Ángulos de servos en grande
+  display.setTextSize(1);
+  display.setCursor(0, 25);
+  display.print("X:");
+  display.print(anguloX);
+  display.print("  Y:");
+  display.print(anguloY);
+  display.print("  Z:");
+  display.println(anguloZ);
+  
+  // Barra visual para ServoX
+  display.setCursor(0, 35);
+  display.println("Servo X:");
+  dibujarBarraAngulo(anguloX, 41);
+  
+  // Barra visual para ServoY
+  display.setCursor(0, 52);
+  display.println("Servo Y:");
+  dibujarBarraAngulo(anguloY, 58);
+  
+  display.display();
+}
+
+// ============================================
+// FUNCIÓN: Dibujar barra de ángulo
+// ============================================
+void dibujarBarraAngulo(int angulo, int posY) {
+  // EDITA AQUÍ: Modifica la visualización de las barras
+  
+  // Dibuja una barra que va de 0 a 180 grados
+  int posicion = map(angulo, 0, 180, 0, 80);
+  
+  // Dibuja el rectángulo vacío
+  display.drawRect(40, posY, 82, 6, SSD1306_WHITE);
+  
+  // Dibuja el rectángulo lleno (barra de progreso)
+  display.fillRect(41, posY + 1, posicion, 4, SSD1306_WHITE);
 }
