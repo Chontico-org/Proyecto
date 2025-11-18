@@ -143,18 +143,26 @@ void determinaMovimiento(int xValue, int yValue, int swValue) {
 // FUNCIÓN: Controlar servos
 // ============================================
 void controlarServos(int xValue, int yValue, int swValue) {
-  // EDITA AQUÍ: Modifica cómo se controlan los servos
-  
-  // Mapear valores del joystick (0-4095) a ángulos del servo (0-180)
-  anguloX = map(xValue, 0, 4095, 0, 180);
-  anguloY = map(yValue, 0, 4095, 0, 180);
-  
-  // Servo X: controla izquierda/derecha
+  // Solo mover servos si el joystick pasa los umbrales
+  if (xValue < UMBRAL_MINIMO) {
+    anguloX = 0; // Izquierda
+  } else if (xValue > UMBRAL_MAXIMO) {
+    anguloX = 180; // Derecha
+  } else {
+    anguloX = 90; // Centro
+  }
+
+  if (yValue < UMBRAL_MINIMO) {
+    anguloY = 0; // Abajo
+  } else if (yValue > UMBRAL_MAXIMO) {
+    anguloY = 180; // Arriba
+  } else {
+    anguloY = 90; // Centro
+  }
+
   servoX.write(anguloX);
-  
-  // Servo Y: controla arriba/abajo (invertir si es necesario)
-  servoY.write(180 - anguloY);
-  
+  servoY.write(anguloY);
+
   // Servo Z: se controla con el botón del joystick
   if (swValue == LOW) {
     anguloZ = 45;   // Cerrar (agarrar)
